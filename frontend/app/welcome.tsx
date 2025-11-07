@@ -1,0 +1,121 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  StatusBar,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
+import { Button } from '@/components/ui/Button';
+import { LanguageToggle } from '@/components/LanguageToggle';
+import { AppColors } from '@/constants/colors';
+import i18n, { getCurrentLanguage } from '@/i18n';
+
+export default function WelcomeScreen() {
+  const router = useRouter();
+  const [lang, setLang] = useState<'en' | 'hi'>(getCurrentLanguage() as 'en' | 'hi');
+
+  // Force re-render when language changes by using a key
+  useEffect(() => {
+    const updateLang = () => {
+      setLang(getCurrentLanguage() as 'en' | 'hi');
+    };
+    // Small delay to ensure language is updated
+    const timeout = setTimeout(updateLang, 50);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={AppColors.background} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}>
+        <View style={styles.header}>
+          <LanguageToggle />
+        </View>
+        <View style={styles.content}>
+          {/* Logo and Tagline */}
+          <Animated.View entering={FadeIn.duration(800)} style={styles.logoContainer}>
+            <Text style={styles.emoji}>🌾</Text>
+            <Text style={styles.appName}>Krishi Connect</Text>
+            <Text style={styles.tagline}>{i18n.t('welcome.title')}</Text>
+          </Animated.View>
+
+          {/* Buttons */}
+          <Animated.View
+            entering={FadeInDown.delay(400).duration(600)}
+            style={styles.buttonContainer}>
+            <Button
+              title={i18n.t('welcome.login')}
+              onPress={() => router.push('/login')}
+              variant="primary"
+              size="large"
+              style={styles.button}
+            />
+            <Button
+              title={i18n.t('welcome.signUp')}
+              onPress={() => router.push('/signup')}
+              variant="outline"
+              size="large"
+              style={styles.button}
+            />
+          </Animated.View>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: AppColors.background,
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  header: {
+    alignItems: 'flex-end',
+    paddingHorizontal: 24,
+    paddingTop: 16,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 64,
+  },
+  emoji: {
+    fontSize: 80,
+    marginBottom: 16,
+  },
+  appName: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: AppColors.primary,
+    marginBottom: 12,
+  },
+  tagline: {
+    fontSize: 18,
+    color: AppColors.textSecondary,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  buttonContainer: {
+    width: '100%',
+    gap: 16,
+  },
+  button: {
+    width: '100%',
+  },
+});
+
