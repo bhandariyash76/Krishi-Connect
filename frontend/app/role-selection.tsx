@@ -11,12 +11,15 @@ import { useRouter } from 'expo-router';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { BackButton } from '@/components/ui/BackButton';
 import { AppColors, AppStyles } from '@/constants/colors';
 import i18n from '@/i18n';
 import { storage } from '@/utils/storage';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function RoleSelectionScreen() {
   const router = useRouter();
+  const { language } = useLanguage(); // Trigger re-render on language change
   const [selectedRole, setSelectedRole] = useState<'farmer' | 'buyer' | null>(null);
 
   const handleContinue = async () => {
@@ -67,6 +70,10 @@ export default function RoleSelectionScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={AppColors.background} />
       <View style={styles.content}>
+        <BackButton 
+          onPress={() => router.push('/welcome')}
+          style={styles.backButton}
+        />
         <Animated.View entering={FadeIn.duration(600)} style={styles.header}>
           <Text style={styles.title}>{i18n.t('role.title')}</Text>
           <Text style={styles.subtitle}>
@@ -116,8 +123,11 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingTop: 16,
     paddingBottom: 32,
+  },
+  backButton: {
+    marginBottom: 8,
   },
   header: {
     alignItems: 'center',

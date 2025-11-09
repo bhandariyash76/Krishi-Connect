@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -13,21 +13,12 @@ import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { Button } from '@/components/ui/Button';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { AppColors } from '@/constants/colors';
-import i18n, { getCurrentLanguage } from '@/i18n';
+import i18n from '@/i18n';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  const [lang, setLang] = useState<'en' | 'hi'>(getCurrentLanguage() as 'en' | 'hi');
-
-  // Force re-render when language changes by using a key
-  useEffect(() => {
-    const updateLang = () => {
-      setLang(getCurrentLanguage() as 'en' | 'hi');
-    };
-    // Small delay to ensure language is updated
-    const timeout = setTimeout(updateLang, 50);
-    return () => clearTimeout(timeout);
-  }, []);
+  const { language } = useLanguage(); // This will trigger re-render when language changes
 
   return (
     <SafeAreaView style={styles.container}>

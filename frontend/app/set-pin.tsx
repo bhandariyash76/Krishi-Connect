@@ -7,15 +7,20 @@ import {
   StatusBar,
   TextInput,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { BackButton } from '@/components/ui/BackButton';
+import { Button } from '@/components/ui/Button';
 import { AppColors, AppStyles } from '@/constants/colors';
 import i18n from '@/i18n';
 import { storage } from '@/utils/storage';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function SetPinScreen() {
   const router = useRouter();
+  const { language } = useLanguage(); // Trigger re-render on language change
   const [pin, setPin] = useState(['', '', '', '']);
   const [confirmPin, setConfirmPin] = useState(['', '', '', '']);
   const [step, setStep] = useState<'set' | 'confirm'>('set');
@@ -115,6 +120,12 @@ export default function SetPinScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={AppColors.background} />
       <View style={styles.content}>
+        {step === 'set' && (
+          <BackButton 
+            onPress={() => router.push('/role-selection')}
+            style={styles.backButton}
+          />
+        )}
         <Animated.View entering={FadeIn.duration(600)} style={styles.header}>
           <Text style={styles.emoji}>🔒</Text>
           <Text style={styles.title}>
@@ -138,20 +149,24 @@ export default function SetPinScreen() {
             <Animated.View
               entering={FadeInDown.delay(500).duration(600)}
               style={styles.buttonContainer}>
-              <Text
-                style={styles.submitButton}
-                onPress={handleSubmit}>
-                {i18n.t('common.continue')}
-              </Text>
-              <Text
-                style={styles.backButton}
+              <Button
+                title={i18n.t('common.continue')}
+                onPress={handleSubmit}
+                variant="primary"
+                size="large"
+                style={styles.continueButton}
+              />
+              <TouchableOpacity
+                style={styles.backButtonText}
                 onPress={() => {
                   setStep('set');
                   setConfirmPin(['', '', '', '']);
                   inputRefs.current[0]?.focus();
                 }}>
-                {i18n.t('common.back')}
-              </Text>
+                <Text style={styles.backButtonLabel}>
+                  {i18n.t('common.back')}
+                </Text>
+              </TouchableOpacity>
             </Animated.View>
           )}
         </Animated.View>
@@ -168,8 +183,11 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 64,
+    paddingTop: 16,
     paddingBottom: 32,
+  },
+  backButton: {
+    marginBottom: 16,
   },
   header: {
     alignItems: 'center',
@@ -221,18 +239,20 @@ const styles = StyleSheet.create({
   buttonContainer: {
     alignItems: 'center',
     gap: 16,
+    marginTop: 16,
   },
-  submitButton: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: AppColors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 32,
+  continueButton: {
+    width: '100%',
+    maxWidth: 300,
   },
-  backButton: {
+  backButtonText: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  backButtonLabel: {
     fontSize: 16,
     color: AppColors.textSecondary,
-    paddingVertical: 8,
+    fontWeight: '500',
   },
 });
 

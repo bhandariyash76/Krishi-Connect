@@ -1,50 +1,92 @@
-# Welcome to your Expo app 👋
+# Krishi Connect Frontend
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Bilingual (English + Hindi) farmer marketplace mobile application built with React Native and Expo.
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## 🚀 Quick Start
 
 ```bash
-npm run reset-project
+# Install dependencies
+npm install
+
+# Start the development server
+npm start
+
+# Run on Android
+npm run android
+
+# Run on iOS
+npm run ios
+
+# Run on Web
+npm run web
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 📱 Features
 
-## Learn more
+- Bilingual support (English/Hindi)
+- Complete authentication flow
+- Role-based access (Farmer/Buyer)
+- 4-digit PIN security
+- Modern UI with animations
+- Local data storage
 
-To learn more about developing your project with Expo, look at the following resources:
+## 📁 Project Structure
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```
+frontend/
+├── app/                 # Screen components
+├── components/          # Reusable components
+├── constants/           # Constants and themes
+├── i18n/               # Internationalization
+├── utils/              # Utilities
+└── package.json        # Dependencies
+```
 
-## Join the community
+## 🛠️ Technologies
 
-Join our community of developers creating universal apps.
+- React Native
+- Expo
+- TypeScript
+- i18n-js
+- AsyncStorage
+- React Native Reanimated
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 📖 Documentation
+
+- See [SETUP.md](./SETUP.md) for detailed setup instructions
+- See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for common issues
+
+## 🌐 Language Support
+
+- English (en)
+- Hindi (hi)
+
+Toggle language from Welcome or Home screen.
+
+## 📝 Scripts
+
+- `npm start` - Start Expo development server
+- `npm run android` - Run on Android
+- `npm run ios` - Run on iOS
+- `npm run web` - Run on Web
+- `npm run lint` - Lint code
+
+## 🔧 Troubleshooting
+
+If you encounter issues:
+
+1. Clear cache: `npm start -- --reset-cache`
+2. Reinstall dependencies: `rm -rf node_modules && npm install`
+3. Check [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
+
+## 📱 Testing
+
+1. Welcome screen → Sign Up
+2. Fill form → Select role
+3. Set PIN → Home screen
+4. Test language toggle
+5. Test logout and login flow
+
+---
+
+For more information, see the main [README.md](../README.md) file.

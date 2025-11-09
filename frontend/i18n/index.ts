@@ -56,6 +56,8 @@ const translations = {
       save: 'Save',
       cancel: 'Cancel',
       submit: 'Submit',
+      goBack: 'Go Back',
+      next: 'Next',
     },
   },
   hi: {
@@ -110,38 +112,24 @@ const translations = {
       save: 'सहेजें',
       cancel: 'रद्द करें',
       submit: 'सबमिट करें',
+      goBack: 'वापस जाएं',
+      next: 'अगला',
     },
   },
 };
 
 const i18n = new I18n(translations);
 
-// Get device locale
-const deviceLocales = Localization.getLocales();
-const deviceLanguage = deviceLocales[0]?.languageCode || 'en';
-
 // Set default locale
 i18n.defaultLocale = 'en';
 i18n.enableFallback = true;
-// Set initial locale immediately
-i18n.locale = deviceLanguage === 'hi' ? 'hi' : 'en';
+// Default to English (will be updated by LanguageProvider)
+i18n.locale = 'en';
 
-// Load saved language preference asynchronously
-AsyncStorage.getItem('appLanguage').then((language) => {
-  if (language && (language === 'en' || language === 'hi')) {
-    i18n.locale = language;
-  }
-}).catch(() => {
-  // If AsyncStorage fails, use device language
-  i18n.locale = deviceLanguage === 'hi' ? 'hi' : 'en';
-});
-
-export const setLanguage = async (language: 'en' | 'hi') => {
-  i18n.locale = language;
-  await AsyncStorage.setItem('appLanguage', language);
+// Helper function to get current language (for backward compatibility)
+export const getCurrentLanguage = (): 'en' | 'hi' => {
+  return (i18n.locale as 'en' | 'hi') || 'en';
 };
-
-export const getCurrentLanguage = () => i18n.locale;
 
 export default i18n;
 

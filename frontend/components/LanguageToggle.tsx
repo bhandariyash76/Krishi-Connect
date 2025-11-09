@@ -1,25 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { AppColors } from '@/constants/colors';
-import { setLanguage, getCurrentLanguage } from '@/i18n';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const LanguageToggle: React.FC = () => {
-  const [currentLang, setCurrentLang] = useState<'en' | 'hi'>('en');
+  const { language, setLanguage } = useLanguage();
 
-  useEffect(() => {
-    setCurrentLang(getCurrentLanguage() as 'en' | 'hi');
-  }, []);
-
-  const handleToggle = async () => {
-    const newLang = currentLang === 'en' ? 'hi' : 'en';
-    await setLanguage(newLang);
-    setCurrentLang(newLang);
+  const handleToggle = () => {
+    const newLang = language === 'en' ? 'hi' : 'en';
+    setLanguage(newLang);
   };
 
   return (
     <TouchableOpacity style={styles.button} onPress={handleToggle}>
       <Text style={styles.text}>
-        {currentLang === 'en' ? 'हिंदी' : 'English'}
+        {language === 'en' ? 'हिंदी' : 'English'}
       </Text>
     </TouchableOpacity>
   );

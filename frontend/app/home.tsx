@@ -13,19 +13,20 @@ import { useRouter } from 'expo-router';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { LanguageToggle } from '@/components/LanguageToggle';
 import { AppColors } from '@/constants/colors';
-import i18n, { setLanguage, getCurrentLanguage } from '@/i18n';
+import i18n from '@/i18n';
 import { storage } from '@/utils/storage';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { language } = useLanguage(); // This will trigger re-render when language changes
   const [role, setRole] = useState<'farmer' | 'buyer' | null>(null);
   const [userName, setUserName] = useState('');
-  const [currentLang, setCurrentLang] = useState<'en' | 'hi'>('en');
 
   useEffect(() => {
     loadUserData();
-    setCurrentLang(getCurrentLanguage() as 'en' | 'hi');
   }, []);
 
   const loadUserData = async () => {
@@ -33,14 +34,6 @@ export default function HomeScreen() {
     const userData = await storage.getUserData();
     setRole(userRole);
     setUserName(userData?.name || '');
-  };
-
-  const handleLanguageToggle = async () => {
-    const newLang = currentLang === 'en' ? 'hi' : 'en';
-    await setLanguage(newLang);
-    setCurrentLang(newLang);
-    // Force re-render to update all text
-    loadUserData();
   };
 
   const handleChangePin = () => {
@@ -85,13 +78,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}>
         {/* Header with Language Toggle */}
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.languageButton}
-            onPress={handleLanguageToggle}>
-            <Text style={styles.languageText}>
-              {currentLang === 'en' ? 'हिंदी' : 'English'}
-            </Text>
-          </TouchableOpacity>
+          <LanguageToggle />
         </View>
 
         {/* Welcome Card */}
@@ -155,17 +142,6 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'flex-end',
     marginBottom: 24,
-  },
-  languageButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: AppColors.primary,
-    borderRadius: 20,
-  },
-  languageText: {
-    color: AppColors.textLight,
-    fontSize: 14,
-    fontWeight: '600',
   },
   welcomeSection: {
     marginBottom: 24,

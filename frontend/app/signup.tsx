@@ -14,12 +14,15 @@ import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { BackButton } from '@/components/ui/BackButton';
 import { AppColors } from '@/constants/colors';
 import i18n from '@/i18n';
 import { storage } from '@/utils/storage';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function SignupScreen() {
   const router = useRouter();
+  const { language } = useLanguage(); // Trigger re-render on language change
   const [fullName, setFullName] = useState('');
   const [emailMobile, setEmailMobile] = useState('');
   const [password, setPassword] = useState('');
@@ -70,6 +73,7 @@ export default function SignupScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled">
           <Animated.View entering={FadeInDown.duration(600)} style={styles.content}>
+            <BackButton onPress={() => router.push('/welcome')} />
             <Text style={styles.title}>{i18n.t('signup.title')}</Text>
             <Text style={styles.subtitle}>
               {i18n.t('signup.alreadyHaveAccount')}{' '}

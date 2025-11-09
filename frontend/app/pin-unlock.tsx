@@ -7,15 +7,18 @@ import {
   StatusBar,
   TextInput,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeInDown, useSharedValue, withRepeat, withTiming, useAnimatedStyle } from 'react-native-reanimated';
 import { AppColors, AppStyles } from '@/constants/colors';
 import i18n from '@/i18n';
 import { storage } from '@/utils/storage';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function PinUnlockScreen() {
   const router = useRouter();
+  const { language } = useLanguage(); // Trigger re-render on language change
   const [pin, setPin] = useState(['', '', '', '']);
   const [error, setError] = useState(false);
   const inputRefs = useRef<(TextInput | null)[]>([]);
@@ -86,6 +89,24 @@ export default function PinUnlockScreen() {
     }
   };
 
+  const handleForgotPin = () => {
+    Alert.alert(
+      'Forgot PIN?',
+      'To reset your PIN, you need to logout and sign up again.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            await storage.clearAll();
+            router.replace('/welcome');
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={AppColors.background} />
@@ -127,6 +148,13 @@ export default function PinUnlockScreen() {
               />
             ))}
           </Animated.View>
+          <TouchableOpacity
+            style={styles.forgotPinButton}
+            onPress={handleForgotPin}>
+            <Text style={styles.forgotPinText}>
+              Forgot PIN?
+            </Text>
+          </TouchableOpacity>
         </Animated.View>
       </View>
     </SafeAreaView>
@@ -192,6 +220,16 @@ const styles = StyleSheet.create({
   },
   pinInputError: {
     borderColor: AppColors.error,
+  },
+  forgotPinButton: {
+    marginTop: 24,
+    paddingVertical: 8,
+  },
+  forgotPinText: {
+    fontSize: 14,
+    color: AppColors.primary,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
 
