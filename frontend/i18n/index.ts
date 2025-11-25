@@ -7,8 +7,7 @@ const translations = {
   en: {
     welcome: {
       title: 'Connecting Farmers and Buyers',
-      login: 'Login',
-      signUp: 'Sign Up',
+      getStarted: 'Get Started',
     },
     login: {
       title: 'Login',
@@ -49,6 +48,17 @@ const translations = {
       buyer: 'Buyer',
       changePin: 'Change PIN',
       logout: 'Logout',
+      addProduct: 'Add New Product',
+      availableProducts: 'Available Products',
+    },
+    product: {
+      addTitle: 'Add New Product',
+      name: 'Product Name',
+      price: 'Price (₹)',
+      quantity: 'Quantity',
+      unit: 'Unit',
+      submit: 'Add Product',
+      success: 'Product added successfully',
     },
     common: {
       continue: 'Continue',
@@ -63,8 +73,7 @@ const translations = {
   hi: {
     welcome: {
       title: 'किसान और खरीदार को जोड़ना',
-      login: 'लॉगिन',
-      signUp: 'साइन अप',
+      getStarted: 'शुरू करें',
     },
     login: {
       title: 'लॉगिन',
@@ -105,6 +114,17 @@ const translations = {
       buyer: 'खरीदार',
       changePin: 'पिन बदलें',
       logout: 'लॉग आउट',
+      addProduct: 'नया उत्पाद जोड़ें',
+      availableProducts: 'उपलब्ध उत्पाद',
+    },
+    product: {
+      addTitle: 'नया उत्पाद जोड़ें',
+      name: 'उत्पाद का नाम',
+      price: 'कीमत (₹)',
+      quantity: 'मात्रा',
+      unit: 'इकाई',
+      submit: 'उत्पाद जोड़ें',
+      success: 'उत्पाद सफलतापूर्वक जोड़ा गया',
     },
     common: {
       continue: 'जारी रखें',
@@ -132,4 +152,3 @@ export const getCurrentLanguage = (): 'en' | 'hi' => {
 };
 
 export default i18n;
-

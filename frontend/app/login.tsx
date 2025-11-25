@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   KeyboardAvoidingView,
   Platform,
@@ -11,19 +10,21 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { BackButton } from '@/components/ui/BackButton';
+import { LanguageToggle } from '@/components/LanguageToggle'; // Added import
 import { AppColors } from '@/constants/colors';
 import i18n from '@/i18n';
 import { storage } from '@/utils/storage';
 import { useLanguage } from '@/contexts/LanguageContext';
+import api, { setAuthToken } from '@/services/api';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { language } = useLanguage(); // Trigger re-render on language change
+  const { language } = useLanguage();
   const [emailMobile, setEmailMobile] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,27 +37,32 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      // Simulate login - in real app, this would be an API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // Save login status
+      const response = await api.post('/auth/login', {
+        email: emailMobile,
+        password,
+      });
+
+      const { result, token } = response.data;
+
       await storage.setLoggedIn(true);
-      
-      // Check if user has selected a role
-      const role = await storage.getUserRole();
-      if (!role) {
+      await storage.setToken(token);
+      await storage.setUserData(result);
+      setAuthToken(token);
+
+      const role = result.role;
+      if (role) {
+        await storage.setUserRole(role);
+      }
+
+      const storedRole = await storage.getUserRole();
+
+      if (!storedRole) {
         router.replace('/role-selection');
       } else {
-        // Check if PIN is set
-        const isPinSet = await storage.isPinSet();
-        if (isPinSet) {
-          router.replace('/pin-unlock');
-        } else {
-          router.replace('/set-pin');
-        }
+        router.replace('/home');
       }
-    } catch (error) {
-      Alert.alert('Error', 'Login failed. Please try again.');
+    } catch (error: any) {
+      Alert.alert('Error', error.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -65,6 +71,12 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={AppColors.background} />
+
+      {/* Header with Language Toggle */}
+      <View style={styles.header}>
+        <LanguageToggle />
+      </View>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}>
@@ -72,16 +84,11 @@ export default function LoginScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled">
           <Animated.View entering={FadeInDown.duration(600)} style={styles.content}>
-            <BackButton onPress={() => router.push('/welcome')} />
-            <Text style={styles.title}>{i18n.t('login.title')}</Text>
-            <Text style={styles.subtitle}>
-              {i18n.t('login.dontHaveAccount')}{' '}
-              <Text
-                style={styles.link}
-                onPress={() => router.push('/signup')}>
-                {i18n.t('login.signUp')}
-              </Text>
-            </Text>
+
+            <View style={styles.titleContainer}>
+              <Text style={styles.emoji}>🌾</Text>
+              <Text style={styles.title}>{i18n.t('login.title')}</Text>
+            </View>
 
             <View style={styles.form}>
               <Input
@@ -120,6 +127,17 @@ export default function LoginScreen() {
                 loading={loading}
                 style={styles.loginButton}
               />
+
+              <View style={styles.footer}>
+                <Text style={styles.subtitle}>
+                  {i18n.t('login.dontHaveAccount')}{' '}
+                  <Text
+                    style={styles.link}
+                    onPress={() => router.push('/signup')}>
+                    {i18n.t('login.signUp')}
+                  </Text>
+                </Text>
+              </View>
             </View>
           </Animated.View>
         </ScrollView>
@@ -133,31 +151,45 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: AppColors.background,
   },
+  header: {
+    alignItems: 'flex-end',
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    zIndex: 10,
+  },
   keyboardView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 40,
   },
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingTop: 10,
+  },
+  titleContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  emoji: {
+    fontSize: 48,
+    marginBottom: 8,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     color: AppColors.primary,
-    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: AppColors.textSecondary,
-    marginBottom: 32,
+    textAlign: 'center',
   },
   link: {
     color: AppColors.primary,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
   form: {
     flex: 1,
@@ -173,6 +205,10 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     marginTop: 8,
+    marginBottom: 24,
+  },
+  footer: {
+    marginTop: 16,
+    alignItems: 'center',
   },
 });
-

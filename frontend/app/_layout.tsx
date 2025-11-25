@@ -22,11 +22,9 @@ export default function RootLayout() {
           <Stack.Screen name="login" />
           <Stack.Screen name="signup" />
           <Stack.Screen name="role-selection" />
-          <Stack.Screen name="set-pin" />
-          <Stack.Screen name="pin-unlock" />
+
           <Stack.Screen name="home" />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+          <Stack.Screen name="add-product" />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>

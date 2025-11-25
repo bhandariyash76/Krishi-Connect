@@ -52,7 +52,7 @@ export const Button: React.FC<ButtonProps> = ({
       disabled={disabled || loading}
       activeOpacity={0.8}>
       {loading ? (
-        <ActivityIndicator color={variant === 'outline' ? AppColors.primary : AppColors.textLight} />
+        <ActivityIndicator color={AppColors.primary} />
       ) : (
         <Text style={textStyles}>{title}</Text>
       )}
@@ -68,7 +68,9 @@ const styles = StyleSheet.create({
     ...AppStyles.shadow,
   },
   button_primary: {
-    backgroundColor: AppColors.primary,
+    backgroundColor: AppColors.background,
+    borderWidth: 1,
+    borderColor: AppColors.border,
   },
   button_secondary: {
     backgroundColor: AppColors.secondary,
@@ -101,7 +103,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   text_primary: {
-    color: AppColors.textLight,
+    color: AppColors.primary,
   },
   text_secondary: {
     color: AppColors.textLight,

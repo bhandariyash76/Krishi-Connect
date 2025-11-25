@@ -3,11 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { Button } from '@/components/ui/Button';
@@ -21,20 +21,20 @@ export default function WelcomeScreen() {
   const { language } = useLanguage(); // This will trigger re-render when language changes
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} key={language}>
       <StatusBar barStyle="dark-content" backgroundColor={AppColors.background} />
+      <View style={styles.header}>
+        <LanguageToggle />
+      </View>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}>
-        <View style={styles.header}>
-          <LanguageToggle />
-        </View>
         <View style={styles.content}>
           {/* Logo and Tagline */}
           <Animated.View entering={FadeIn.duration(800)} style={styles.logoContainer}>
             <Text style={styles.emoji}>🌾</Text>
             <Text style={styles.appName}>Krishi Connect</Text>
-            <Text style={styles.tagline}>{i18n.t('welcome.title')}</Text>
+            <Text style={styles.tagline}>{i18n.t('welcome.title', { locale: language })}</Text>
           </Animated.View>
 
           {/* Buttons */}
@@ -42,16 +42,9 @@ export default function WelcomeScreen() {
             entering={FadeInDown.delay(400).duration(600)}
             style={styles.buttonContainer}>
             <Button
-              title={i18n.t('welcome.login')}
-              onPress={() => router.push('/login')}
-              variant="primary"
-              size="large"
-              style={styles.button}
-            />
-            <Button
-              title={i18n.t('welcome.signUp')}
+              title={i18n.t('welcome.getStarted', { locale: language })}
               onPress={() => router.push('/signup')}
-              variant="outline"
+              variant="primary"
               size="large"
               style={styles.button}
             />
@@ -74,6 +67,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: 24,
     paddingTop: 16,
+    zIndex: 10,
   },
   content: {
     flex: 1,

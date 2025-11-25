@@ -1,0 +1,140 @@
+
+3.2 Use Case Diagrams
+The system has three main actors: Farmer, Buyer, and Admin. Key use cases are:
+• Farmer registers, creates/view contracts, receives payments, and raises disputes.
+• Buyer registers, negotiates contracts, makes payments, and confirms deliveries.
+• Admin monitors transactions, manages disputes, and maintains system integrity.
+Note: The actual Use Case Diagram should be created using tools like StarUML, Lucidchart, or draw.io
+and inserted as a figure here. Example placeholder:
+9
+3.3 Interfaces
+The system requires multiple interfaces to ensure smooth communication between software components,
+hardware, and users.
+3.3.1 Software Interfaces
+• Frontend: Web and mobile-first interface developed using React.js/Flutter for farmers and buy-
+ers.
+• Backend: REST API developed using Node.js/Flask/Django to handle core business logic.
+• Database: Relational database (MySQL/PostgreSQL) for storing contracts, user profiles, and
+transaction records.
+• Payment Gateway: Integration with services like Razorpay/Paytm for secure digital payments.
+• Authentication: Secure login using JWT/OAuth2.
+3.3.2 Hardware Interfaces
+• Client Devices: Smartphones (Android/iOS) or computers with internet connectivity.
+• Server: Cloud-hosted virtual machine or server with minimum configuration: Quad-core CPU,
+8GB RAM, and scalable storage.
+3.3.3 Communication Interfaces
+• Internet Protocols: HTTPS for secure communication between client and server.
+• Notification Services: SMS gateway and email service for contract updates and reminders.
+• Third-Party APIs: Optional integration with weather APIs or advisory systems for additional
+farmer support.
+3.4 Methodology
+The methodology adopted for this project ensures systematic development and testing of the proposed
+system:
+10
+1. Requirement Gathering: Identify challenges faced by farmers and buyers and translate them
+into functional and non-functional requirements.
+2. System Design: Define architecture, use cases, and data models.
+3. Module Development: Build independent modules (Farmer, Buyer, Admin, Payment).
+4. Integration: Connect modules and third-party services (payment, notifications).
+5. Testing and Validation: Conduct functional, usability, and security testing.
+6. Deployment: Launch the pilot system and collect user feedback.
+This iterative methodology ensures that user needs remain central throughout the project lifecycle.
+11
+Chapter 4
+Work Distribution
+4.1 Task Allocation
+The project has been undertaken by a team of three students: Anmol Purohit, Lalit Gaur, and
+Yash Bhandari. To ensure systematic progress, tasks were distributed among the team members
+according to their skills and areas of interest.
+• Anmol Purohit: Focused on frontend interface development, use case documentation, project
+documentation and testing.
+• Lalit Gaur: Handled requirement analysis, report writing, and coordination of modules
+• Yash Bhandari: Responsible for database design, backend development, and system integration.
+This distribution ensures parallel development of system components and timely integration.
+4.2 Module Details
+The proposed system is divided into distinct modules for clarity and better management:
+1. Farmer Module: Registration, contract creation, viewing available contracts, payment tracking.
+2. Buyer Module: Registration, searching for farmers, negotiating contracts, making payments.
+3. Admin Module: Monitoring transactions, resolving disputes, and system maintenance.
+4. Payment Module: Secure payment gateway integration (Razorpay/Paytm).
+12
+5. Notification Module: SMS/email alerts for contract milestones, delivery reminders, and pay-
+ment confirmations.
+4.3 Remark
+The team adopted a collaborative approach where members contributed to each other’s domains when
+required. Regular team meetings were held to review progress, resolve issues, and ensure alignment with
+project goals. This cooperative work distribution facilitated timely completion of the initial project
+phases and will continue throughout the development lifecycle.
+13
+Chapter 5
+Design Document
+This chapter presents the detailed design of the proposed system. It includes the functional description,
+functional partitions, data organization, user interface design, module specifications, and process flow
+representations. The design ensures that the system is modular, scalable, and user-friendly.
+5.1 Functional Description
+The Assured Contract Farming System is designed to connect farmers and buyers through a digital
+platform that ensures transparent and legally valid contracts. The system supports the following core
+functions:
+• Farmer Functions: Registration, contract creation, negotiation, payment tracking, and dispute
+raising.
+• Buyer Functions: Registration, contract negotiation, payment processing, and delivery confir-
+mation.
+• Admin Functions: Monitoring transactions, dispute resolution, and maintaining system secu-
+rity.
+• Payment Functions: Secure digital transactions via integrated payment gateways.
+• Notification Functions: Automated SMS/email alerts for contract milestones and payment
+confirmations.
+14
+5.2 Functional Partitions
+The system is divided into logical modules, each performing a specific set of tasks:
+1. Farmer Module: Registration, contract management, and payment receipt.
+2. Buyer Module: Product search, contract negotiation, and secure payments.
+3. Admin Module: System monitoring, user management, and dispute resolution.
+4. Payment Module: Handles secure integration with third-party payment gateways.
+5. Notification Module: Sends reminders and alerts regarding contracts and payments.
+15
+16
+5.3 Data Description
+The database schema is designed to support contract management, user authentication, and transaction
+tracking.
+Table 5.1: Sample Database Schema
+Field Name Data Type Constraints Description
+UserID INT Primary Key Unique user identifier
+UserName VARCHAR(50) Not Null Name of the user
+Password VARCHAR(100) Not Null Encrypted user password
+Role VARCHAR(20) Default ’User’ Defines user type (Admin/Farmer/Buyer)
+ContractID INT Primary Key Unique contract identifier
+PaymentID INT Foreign Key Links to payment transactions
+Figure 5.3: Entity Relationship Diagram of the Database
+Figure 5.4: Data Flow Diagram (Level 1) of the System
+5.4 User Interface Design
+The system is designed as a mobile-first platform with simple navigation and multilingual support. The
+interface provides:
+• Easy registration and login.
+• Dashboard for farmers and buyers to track contracts and payments.
+• Notifications section for alerts and reminders.
+• Support section for dispute resolution.
+Figure 5.5: Sample User Interface Mockup
+5.5 Module Description
+Module 1: Farmer Module Inputs: Farmer registration data, contract details. Processing: Valida-
+tion, contract creation, payment record update. Outputs: Stored contract, payment confirmation.
+Module 2: Buyer Module Inputs: Buyer registration data, contract requests. Processing: Con-
+tract negotiation, payment initiation. Outputs: Buyer confirmation, payment record.
+17
+Module 3: Admin Module Inputs: User reports, disputes, system logs. Processing: Issue
+resolution, monitoring, user control. Outputs: Updated system records, dispute reports.
+Module 4: Payment Module Inputs: Payment request. Processing: API call to gateway, verifi-
+cation, transaction logging. Outputs: Payment receipt, status update.
+Module 5: Notification Module Inputs: Contract milestones, payment events. Processing:
+Generate alerts. Outputs: SMS/email notifications to users.
+5.6 Process Flow Representation
+The execution of the system follows structured workflows. Flowcharts and sequence diagrams illustrate
+system interactions.
+Figure 5.6: Flowchart of the System Process
+Figure 5.7: Sequence Diagram of User Interaction with System
+5.7 Deployment View
+The system is deployed on a cloud-hosted server with the following structure:
+• Client devices: Smartphones or PCs with internet access.
+• Application server: Hosts backend, APIs, and databases.
+• Payment gateway: Integrated third-party service for secure transactions.
+Figure 5.8: Deployment Diagram of the System

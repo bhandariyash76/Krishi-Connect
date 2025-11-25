@@ -4,6 +4,8 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { storage } from '@/utils/storage';
 import { AppColors } from '@/constants/colors';
 
+import { setAuthToken } from '@/services/api';
+
 export default function Index() {
   const router = useRouter();
 
@@ -16,14 +18,12 @@ export default function Index() {
       const isLoggedIn = await storage.isLoggedIn();
       const isPinSet = await storage.isPinSet();
       const hasRole = await storage.getUserRole();
+      const token = await storage.getToken();
 
-      if (isLoggedIn) {
+      if (isLoggedIn && token) {
+        setAuthToken(token);
         if (hasRole) {
-          if (isPinSet) {
-            router.replace('/pin-unlock');
-          } else {
-            router.replace('/set-pin');
-          }
+          router.replace('/home');
         } else {
           router.replace('/role-selection');
         }

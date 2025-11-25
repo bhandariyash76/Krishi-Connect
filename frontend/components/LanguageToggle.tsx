@@ -8,11 +8,17 @@ export const LanguageToggle: React.FC = () => {
 
   const handleToggle = () => {
     const newLang = language === 'en' ? 'hi' : 'en';
+    console.log('Toggling language to:', newLang);
     setLanguage(newLang);
   };
 
   return (
-    <TouchableOpacity style={styles.button} onPress={handleToggle}>
+    <TouchableOpacity
+      style={styles.button}
+      onPress={handleToggle}
+      activeOpacity={0.7}
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+    >
       <Text style={styles.text}>
         {language === 'en' ? 'हिंदी' : 'English'}
       </Text>

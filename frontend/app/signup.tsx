@@ -3,34 +3,36 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { BackButton } from '@/components/ui/BackButton';
+import { LanguageToggle } from '@/components/LanguageToggle';
 import { AppColors } from '@/constants/colors';
 import i18n from '@/i18n';
 import { storage } from '@/utils/storage';
 import { useLanguage } from '@/contexts/LanguageContext';
+import api, { setAuthToken } from '@/services/api';
 
 export default function SignupScreen() {
   const router = useRouter();
-  const { language } = useLanguage(); // Trigger re-render on language change
+  const { language } = useLanguage();
   const [fullName, setFullName] = useState('');
-  const [emailMobile, setEmailMobile] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSignup = async () => {
-    if (!fullName || !emailMobile || !password || !confirmPassword) {
+    if (!fullName || !email || !phone || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
@@ -47,17 +49,24 @@ export default function SignupScreen() {
 
     setLoading(true);
     try {
-      // Simulate signup - in real app, this would be an API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // Save user data
-      await storage.setUserData({ name: fullName, email: emailMobile });
+      const response = await api.post('/auth/signup', {
+        name: fullName,
+        email,
+        password,
+        phone,
+        role: 'buyer',
+      });
+
+      const { result, token } = response.data;
+
+      await storage.setUserData(result);
       await storage.setLoggedIn(true);
-      
-      // Navigate to role selection
+      await storage.setToken(token);
+      setAuthToken(token);
+
       router.replace('/role-selection');
-    } catch (error) {
-      Alert.alert('Error', 'Signup failed. Please try again.');
+    } catch (error: any) {
+      Alert.alert('Error', error.response?.data?.message || 'Signup failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -66,6 +75,12 @@ export default function SignupScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={AppColors.background} />
+
+      {/* Header with Language Toggle */}
+      <View style={styles.header}>
+        <LanguageToggle />
+      </View>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}>
@@ -73,16 +88,10 @@ export default function SignupScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled">
           <Animated.View entering={FadeInDown.duration(600)} style={styles.content}>
-            <BackButton onPress={() => router.push('/welcome')} />
-            <Text style={styles.title}>{i18n.t('signup.title')}</Text>
-            <Text style={styles.subtitle}>
-              {i18n.t('signup.alreadyHaveAccount')}{' '}
-              <Text
-                style={styles.link}
-                onPress={() => router.push('/login')}>
-                {i18n.t('signup.login')}
-              </Text>
-            </Text>
+
+            <View style={styles.titleContainer}>
+              <Text style={styles.title}>{i18n.t('signup.title')}</Text>
+            </View>
 
             <View style={styles.form}>
               <Input
@@ -96,12 +105,21 @@ export default function SignupScreen() {
 
               <Input
                 label={i18n.t('signup.emailMobile')}
-                placeholder={i18n.t('signup.emailMobile')}
-                value={emailMobile}
-                onChangeText={setEmailMobile}
+                placeholder="Email"
+                value={email}
+                onChangeText={setEmail}
                 autoCapitalize="none"
                 keyboardType="email-address"
                 autoComplete="email"
+              />
+
+              <Input
+                label="Phone Number"
+                placeholder="Phone Number"
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                autoComplete="tel"
               />
 
               <Input
@@ -132,6 +150,17 @@ export default function SignupScreen() {
                 loading={loading}
                 style={styles.signupButton}
               />
+
+              <View style={styles.footer}>
+                <Text style={styles.subtitle}>
+                  {i18n.t('signup.alreadyHaveAccount')}{' '}
+                  <Text
+                    style={styles.link}
+                    onPress={() => router.push('/login')}>
+                    {i18n.t('signup.login')}
+                  </Text>
+                </Text>
+              </View>
             </View>
           </Animated.View>
         </ScrollView>
@@ -145,27 +174,36 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: AppColors.background,
   },
+  header: {
+    alignItems: 'flex-end',
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    zIndex: 10,
+  },
   keyboardView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 40,
   },
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingTop: 10,
+  },
+  titleContainer: {
+    marginBottom: 24,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     color: AppColors.primary,
-    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: AppColors.textSecondary,
-    marginBottom: 32,
+    textAlign: 'center',
   },
   link: {
     color: AppColors.primary,
@@ -175,7 +213,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   signupButton: {
-    marginTop: 8,
+    marginTop: 32,
+    marginBottom: 24,
+  },
+  footer: {
+    marginTop: 16,
+    alignItems: 'center',
   },
 });
-

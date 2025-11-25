@@ -16,6 +16,7 @@ import { AppColors, AppStyles } from '@/constants/colors';
 import i18n from '@/i18n';
 import { storage } from '@/utils/storage';
 import { useLanguage } from '@/contexts/LanguageContext';
+import api from '@/services/api';
 
 export default function RoleSelectionScreen() {
   const router = useRouter();
@@ -27,8 +28,23 @@ export default function RoleSelectionScreen() {
       return;
     }
 
-    await storage.setUserRole(selectedRole);
-    router.replace('/set-pin');
+    try {
+      const userData = await storage.getUserData();
+      if (userData && (userData as any)._id) {
+        await api.post('/auth/update-role', {
+          userId: (userData as any)._id,
+          role: selectedRole
+        });
+      }
+
+      await storage.setUserRole(selectedRole);
+      router.replace('/home');
+    } catch (error) {
+      console.error("Failed to update role", error);
+      // Fallback to local storage and continue
+      await storage.setUserRole(selectedRole);
+      router.replace('/home');
+    }
   };
 
   const RoleCard = ({
@@ -70,7 +86,7 @@ export default function RoleSelectionScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={AppColors.background} />
       <View style={styles.content}>
-        <BackButton 
+        <BackButton
           onPress={() => router.push('/welcome')}
           style={styles.backButton}
         />

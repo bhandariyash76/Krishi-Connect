@@ -6,6 +6,7 @@ const STORAGE_KEYS = {
   USER_DATA: 'userData',
   IS_PIN_SET: 'isPinSet',
   IS_LOGGED_IN: 'isLoggedIn',
+  AUTH_TOKEN: 'authToken',
 };
 
 export const storage = {
@@ -49,6 +50,14 @@ export const storage = {
     return loggedIn === 'true';
   },
 
+  // Token management
+  async setToken(token: string) {
+    await AsyncStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+  },
+  async getToken(): Promise<string | null> {
+    return await AsyncStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+  },
+
   // Clear all data (logout)
   async clearAll() {
     await AsyncStorage.multiRemove([
@@ -57,6 +66,7 @@ export const storage = {
       STORAGE_KEYS.USER_DATA,
       STORAGE_KEYS.IS_PIN_SET,
       STORAGE_KEYS.IS_LOGGED_IN,
+      STORAGE_KEYS.AUTH_TOKEN,
     ]);
   },
 };
