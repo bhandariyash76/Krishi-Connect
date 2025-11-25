@@ -11,6 +11,7 @@ import {
   Modal,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -19,7 +20,7 @@ import { AppColors } from '@/constants/colors';
 import i18n from '@/i18n';
 import { storage } from '@/utils/storage';
 import { useLanguage } from '@/contexts/LanguageContext';
-import api from '@/services/api';
+import api, { setAuthToken } from '@/services/api';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -196,8 +197,39 @@ export default function HomeScreen() {
           text: 'Logout',
           style: 'destructive',
           onPress: async () => {
-            await storage.clearAll();
-            router.replace('/login');
+            try {
+              console.log('Starting logout process...');
+
+              // Reset local state first
+              setRole(null);
+              setUserName('');
+              setUserId('');
+              setProducts([]);
+              setOrders([]);
+              setAdminStats(null);
+              setAdminUsers([]);
+              setAdminOrders([]);
+              console.log('Local state cleared');
+
+              // Clear auth token from API
+              setAuthToken('');
+              console.log('Auth token cleared from API');
+
+              // Clear all storage
+              await storage.clearAll();
+              console.log('Storage cleared');
+
+              // Small delay to ensure storage is cleared
+              await new Promise(resolve => setTimeout(resolve, 100));
+
+              // Navigate to welcome screen
+              console.log('Navigating to welcome screen...');
+              router.replace('/welcome');
+              console.log('Logout complete');
+            } catch (error) {
+              console.log('Logout error:', error);
+              Alert.alert('Error', 'Failed to logout properly');
+            }
           },
         },
       ]
@@ -329,19 +361,6 @@ export default function HomeScreen() {
             <Text style={styles.modalPrice}>Price: ₹{selectedProduct?.price} / {selectedProduct?.unit}</Text>
 
             <View style={styles.quantityContainer}>
-              <TouchableOpacity
-                onPress={() => setBuyQuantity(Math.max(1, buyQuantity - 1))}
-                style={styles.quantityButton}
-              >
-                <Text style={styles.quantityButtonText}>-</Text>
-              </TouchableOpacity>
-              <Text style={styles.quantityText}>{buyQuantity}</Text>
-              <TouchableOpacity
-                onPress={() => setBuyQuantity(Math.min(selectedProduct?.quantity, buyQuantity + 1))}
-                style={styles.quantityButton}
-              >
-                <Text style={styles.quantityButtonText}>+</Text>
-              </TouchableOpacity>
             </View>
 
             <Text style={styles.totalText}>Total: ₹{selectedProduct?.price * buyQuantity}</Text>
@@ -370,7 +389,12 @@ export default function HomeScreen() {
 
         {/* Header */}
         <View style={styles.header}>
-          <LanguageToggle />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <LanguageToggle />
+            <TouchableOpacity onPress={() => router.push('/profile')}>
+              <Ionicons name="person-circle-outline" size={32} color={AppColors.primary} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Welcome Card */}

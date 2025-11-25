@@ -173,7 +173,11 @@ export default function ProductDetailsScreen() {
 
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Farmer Information</Text>
-                    <Text style={styles.farmerName}>{product.farmer?.name}</Text>
+                    <TouchableOpacity onPress={() => router.push({ pathname: '/profile', params: { userId: product.farmer?._id } })}>
+                        <Text style={[styles.farmerName, { color: AppColors.primary, textDecorationLine: 'underline' }]}>
+                            {product.farmer?.name}
+                        </Text>
+                    </TouchableOpacity>
                     <Text style={styles.farmerContact}>{product.farmer?.email}</Text>
                 </View>
 

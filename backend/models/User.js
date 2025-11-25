@@ -7,6 +7,11 @@ const userSchema = new mongoose.Schema({
     role: { type: String, enum: ["farmer", "buyer", "admin"], required: true },
     pin: { type: String }, // For 4-digit PIN security
     phone: { type: String, required: true },
+    address: { type: String },
+    bio: { type: String },
+    profileImage: { type: String },
+    rating: { type: Number, default: 0 },
+    totalRatings: { type: Number, default: 0 },
     createdAt: { type: Date, default: Date.now },
 });
 
