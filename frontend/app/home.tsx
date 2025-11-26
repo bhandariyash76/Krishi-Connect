@@ -52,14 +52,16 @@ export default function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       if (role && userId) {
+        // Redirect buyers to the new marketplace
+        if (role === 'buyer') {
+          router.replace('/buyer-marketplace');
+          return;
+        }
+
         if (role === 'farmer') {
           fetchFarmerProducts();
           fetchFarmerOrders();
           setActiveTab('inventory');
-        } else if (role === 'buyer') {
-          fetchMarketplaceProducts();
-          fetchBuyerOrders();
-          setActiveTab('marketplace');
         } else if (role === 'admin') {
           fetchAdminStats();
           fetchAdminUsers();
@@ -198,9 +200,17 @@ export default function HomeScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              console.log('Starting logout process...');
+              console.log('🔴 === LOGOUT STARTED (HOME.TSX) ===');
 
-              // Reset local state first
+              // Call backend logout API
+              try {
+                await api.post('/auth/logout');
+                console.log('✓ Backend logout successful');
+              } catch (apiError) {
+                console.log('⚠ Backend logout error (continuing):', apiError);
+              }
+
+              // Reset local state
               setRole(null);
               setUserName('');
               setUserId('');
@@ -209,26 +219,45 @@ export default function HomeScreen() {
               setAdminStats(null);
               setAdminUsers([]);
               setAdminOrders([]);
-              console.log('Local state cleared');
+              console.log('✓ Local state cleared');
 
               // Clear auth token from API
               setAuthToken('');
-              console.log('Auth token cleared from API');
+              console.log('✓ Auth token cleared');
 
-              // Clear all storage
-              await storage.clearAll();
-              console.log('Storage cleared');
+              // Clear all storage - NUCLEAR OPTION
+              try {
+                await storage.clearAll();
+                console.log('✓ Storage.clearAll() done');
 
-              // Small delay to ensure storage is cleared
-              await new Promise(resolve => setTimeout(resolve, 100));
+                // Double clear with AsyncStorage directly
+                const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+                await AsyncStorage.clear();
+                console.log('✓ AsyncStorage.clear() done');
 
-              // Navigate to welcome screen
-              console.log('Navigating to welcome screen...');
-              router.replace('/welcome');
-              console.log('Logout complete');
+                // Verify
+                const allKeys = await AsyncStorage.getAllKeys();
+                console.log('📋 Remaining keys:', allKeys.length);
+              } catch (storageError) {
+                console.error('❌ Storage error:', storageError);
+              }
+
+              // Wait for async operations
+              await new Promise(resolve => setTimeout(resolve, 500));
+              console.log('✓ Wait complete');
+
+              // Force reload the entire app
+              console.log('🔄 Reloading app...');
+              if (typeof window !== 'undefined') {
+                window.location.href = '/';
+              } else {
+                router.replace('/welcome');
+              }
+
+              console.log('🔴 === LOGOUT COMPLETE ===');
             } catch (error) {
-              console.log('Logout error:', error);
-              Alert.alert('Error', 'Failed to logout properly');
+              console.error('❌ LOGOUT ERROR:', error);
+              Alert.alert('Error', 'Failed to logout. Please try again.');
             }
           },
         },

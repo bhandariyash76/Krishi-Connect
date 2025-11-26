@@ -19,8 +19,8 @@ export const register = async (req, res) => {
             phone,
         });
 
-        const token = jwt.sign({ email: result.email, id: result._id }, "test", {
-            expiresIn: "1h",
+        const token = jwt.sign({ email: result.email, id: result._id }, process.env.JWT_SECRET || "test", {
+            expiresIn: "24h",
         });
 
         res.status(200).json({ result, token });
@@ -39,8 +39,8 @@ export const login = async (req, res) => {
         const isPasswordCorrect = await bcrypt.compare(password, existingUser.password);
         if (!isPasswordCorrect) return res.status(400).json({ message: "Invalid credentials" });
 
-        const token = jwt.sign({ email: existingUser.email, id: existingUser._id }, "test", {
-            expiresIn: "1h",
+        const token = jwt.sign({ email: existingUser.email, id: existingUser._id }, process.env.JWT_SECRET || "test", {
+            expiresIn: "24h",
         });
 
         res.status(200).json({ result: existingUser, token });
@@ -78,3 +78,14 @@ export const updateRole = async (req, res) => {
         res.status(500).json({ message: "Something went wrong" });
     }
 }
+
+export const logout = async (req, res) => {
+    try {
+        // Since JWT is stateless, we just send a success response
+        // The client will remove the token from storage
+        res.status(200).json({ message: "Logged out successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Something went wrong" });
+    }
+}
+

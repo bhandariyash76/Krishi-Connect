@@ -58,16 +58,40 @@ export const storage = {
     return await AsyncStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
   },
 
-  // Clear all data (logout)
+  // Clear all data (logout) - IMPROVED VERSION
   async clearAll() {
-    await AsyncStorage.multiRemove([
-      STORAGE_KEYS.USER_ROLE,
-      STORAGE_KEYS.USER_PIN,
-      STORAGE_KEYS.USER_DATA,
-      STORAGE_KEYS.IS_PIN_SET,
-      STORAGE_KEYS.IS_LOGGED_IN,
-      STORAGE_KEYS.AUTH_TOKEN,
-    ]);
+    try {
+      console.log('🗑️ Starting storage clear...');
+
+      // Method 1: Remove specific keys
+      await AsyncStorage.multiRemove([
+        STORAGE_KEYS.USER_ROLE,
+        STORAGE_KEYS.USER_PIN,
+        STORAGE_KEYS.USER_DATA,
+        STORAGE_KEYS.IS_PIN_SET,
+        STORAGE_KEYS.IS_LOGGED_IN,
+        STORAGE_KEYS.AUTH_TOKEN,
+      ]);
+      console.log('✓ Specific keys removed');
+
+      // Method 2: Nuclear option - clear EVERYTHING
+      await AsyncStorage.clear();
+      console.log('✓ AsyncStorage completely cleared');
+
+      // Verify
+      const allKeys = await AsyncStorage.getAllKeys();
+      console.log('📋 Remaining keys:', allKeys.length);
+
+      if (allKeys.length > 0) {
+        console.warn('⚠️ Warning: Some keys still exist:', allKeys);
+      } else {
+        console.log('✅ Storage is completely empty');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('❌ Error clearing storage:', error);
+      return false;
+    }
   },
 };
-

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,10 +15,17 @@ import { LanguageToggle } from '@/components/LanguageToggle';
 import { AppColors } from '@/constants/colors';
 import i18n from '@/i18n';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { setAuthToken } from '@/services/api';
 
 export default function WelcomeScreen() {
   const router = useRouter();
   const { language } = useLanguage(); // This will trigger re-render when language changes
+
+  // Clear any residual auth state when welcome screen mounts
+  useEffect(() => {
+    console.log('Welcome screen mounted - clearing auth state');
+    setAuthToken(''); // Clear any auth token from API headers
+  }, []);
 
   return (
     <SafeAreaView style={styles.container} key={language}>
