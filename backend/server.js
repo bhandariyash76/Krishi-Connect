@@ -25,10 +25,18 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
 
 // Database Connection
+if (!process.env.MONGODB_URI) {
+    console.error("MONGODB_URI is not defined in environment variables");
+    process.exit(1);
+}
+
 mongoose
-    .connect(process.env.MONGODB_URI || "mongodb+srv://bhandariyash76_db_user:lLATtiDmwcjnN6cP@cluster0.kvjy9ez.mongodb.net/krishi_connect?appName=Cluster0")
+    .connect(process.env.MONGODB_URI)
     .then(() => console.log("MongoDB connected"))
-    .catch((err) => console.log(err));
+    .catch((err) => {
+        console.error("MongoDB connection error:", err);
+        process.exit(1);
+    });
 
 // Routes
 app.get("/", (req, res) => {
