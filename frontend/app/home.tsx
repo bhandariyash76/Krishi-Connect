@@ -182,7 +182,7 @@ export default function HomeScreen() {
         totalAmount
       });
 
-      const { order, razorpayOrder } = orderResponse.data;
+      const { order, razorpayOrder, keyId } = orderResponse.data;
 
       // 2. Initiate Payment
       const { initiateRazorpayPayment, verifyPayment } = require('@/services/payment');
@@ -190,6 +190,7 @@ export default function HomeScreen() {
       initiateRazorpayPayment(
         order,
         razorpayOrder,
+        keyId,
         async (data: any) => {
           // Success Callback
           try {

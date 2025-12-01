@@ -69,7 +69,7 @@ export default function ProductDetailsScreen() {
                 totalAmount
             });
 
-            const { order, razorpayOrder } = orderResponse.data;
+            const { order, razorpayOrder, keyId } = orderResponse.data;
 
             // 2. Initiate Payment
             const { initiateRazorpayPayment, verifyPayment } = require('@/services/payment');
@@ -77,6 +77,7 @@ export default function ProductDetailsScreen() {
             initiateRazorpayPayment(
                 order,
                 razorpayOrder,
+                keyId,
                 async (data: any) => {
                     // Success Callback
                     try {

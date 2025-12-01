@@ -59,6 +59,8 @@ export const initiateRazorpayPayment = async (
                 }
             };
 
+            console.log('🚀 Razorpay Options:', JSON.stringify(options, null, 2));
+
             const paymentObject = new (window as any).Razorpay(options);
             paymentObject.open();
 
