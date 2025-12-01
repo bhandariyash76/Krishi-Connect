@@ -52,7 +52,11 @@ export default function EditProductScreen() {
             setFreshness(product.freshness || 'Fresh');
         } catch (error) {
             console.log('Error fetching product details', error);
-            Alert.alert('Error', 'Failed to load product details');
+            if (Platform.OS === 'web') {
+                window.alert('Failed to load product details');
+            } else {
+                Alert.alert('Error', 'Failed to load product details');
+            }
             router.back();
         } finally {
             setFetching(false);
@@ -61,7 +65,11 @@ export default function EditProductScreen() {
 
     const handleUpdateProduct = async () => {
         if (!name || !price || !quantity || !unit) {
-            Alert.alert('Error', 'Please fill in all required fields');
+            if (Platform.OS === 'web') {
+                window.alert('Please fill in all required fields');
+            } else {
+                Alert.alert('Error', 'Please fill in all required fields');
+            }
             return;
         }
 
@@ -79,11 +87,21 @@ export default function EditProductScreen() {
                 freshness
             });
 
-            Alert.alert('Success', 'Product updated successfully', [
-                { text: 'OK', onPress: () => router.back() },
-            ]);
+            if (Platform.OS === 'web') {
+                window.alert('Product updated successfully');
+                router.back();
+            } else {
+                Alert.alert('Success', 'Product updated successfully', [
+                    { text: 'OK', onPress: () => router.back() },
+                ]);
+            }
         } catch (error: any) {
-            Alert.alert('Error', error.response?.data?.message || 'Failed to update product');
+            const errorMessage = error.response?.data?.message || 'Failed to update product';
+            if (Platform.OS === 'web') {
+                window.alert(errorMessage);
+            } else {
+                Alert.alert('Error', errorMessage);
+            }
         } finally {
             setLoading(false);
         }

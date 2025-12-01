@@ -9,6 +9,7 @@ import {
     TouchableOpacity,
     Alert,
     Switch,
+    Platform,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -49,63 +50,66 @@ export default function BuyerSettings() {
         }
     };
 
+    const performLogout = async () => {
+        try {
+            console.log('=== LOGOUT PROCESS STARTED ===');
+
+            // Step 1: Call backend logout API
+            try {
+                await api.post('/auth/logout');
+                console.log('✓ Backend logout successful');
+            } catch (apiError) {
+                console.log('⚠ Backend logout error (continuing):', apiError);
+            }
+
+            // Step 2: Clear auth token from API headers
+            setAuthToken('');
+            console.log('✓ Auth token cleared from API headers');
+
+            // Step 3: Clear all AsyncStorage using both methods
+            try {
+                // Method 1: Use storage utility
+                await storage.clearAll();
+                console.log('✓ Storage.clearAll() completed');
+
+                // Method 2: Direct AsyncStorage clear (nuclear option)
+                const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+                await AsyncStorage.clear();
+                console.log('✓ AsyncStorage.clear() completed');
+            } catch (storageError) {
+                console.error('✗ Storage clear error:', storageError);
+            }
+
+            // Step 4: Force reload the entire app
+            console.log('🔄 Reloading app...');
+            router.replace('/');
+
+            console.log('=== LOGOUT COMPLETE ===');
+        } catch (error) {
+            console.error('✗ LOGOUT ERROR:', error);
+            Alert.alert('Error', 'Failed to logout. Please try again.');
+        }
+    };
+
     const handleLogout = async () => {
-        Alert.alert(
-            'Logout',
-            'Are you sure you want to logout?',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Logout',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            console.log('=== LOGOUT PROCESS STARTED ===');
-
-                            // Step 1: Call backend logout API
-                            try {
-                                await api.post('/auth/logout');
-                                console.log('✓ Backend logout successful');
-                            } catch (apiError) {
-                                console.log('⚠ Backend logout error (continuing):', apiError);
-                            }
-
-                            // Step 2: Clear auth token from API headers
-                            setAuthToken('');
-                            console.log('✓ Auth token cleared from API headers');
-
-                            // Step 3: Clear all AsyncStorage using both methods
-                            try {
-                                // Method 1: Use storage utility
-                                await storage.clearAll();
-                                console.log('✓ Storage.clearAll() completed');
-
-                                // Method 2: Direct AsyncStorage clear (nuclear option)
-                                const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-                                await AsyncStorage.clear();
-                                console.log('✓ AsyncStorage.clear() completed');
-                            } catch (storageError) {
-                                console.error('✗ Storage clear error:', storageError);
-                            }
-
-                            // Step 4: Force reload the entire app
-                            console.log('🔄 Reloading app...');
-                            if (typeof window !== 'undefined') {
-                                window.location.href = '/';
-                            } else {
-                                // Fallback for native (though this is mostly web)
-                                router.replace('/welcome');
-                            }
-
-                            console.log('=== LOGOUT COMPLETE ===');
-                        } catch (error) {
-                            console.error('✗ LOGOUT ERROR:', error);
-                            Alert.alert('Error', 'Failed to logout. Please try again.');
-                        }
+        if (Platform.OS === 'web') {
+            if (window.confirm('Are you sure you want to logout?')) {
+                await performLogout();
+            }
+        } else {
+            Alert.alert(
+                'Logout',
+                'Are you sure you want to logout?',
+                [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                        text: 'Logout',
+                        style: 'destructive',
+                        onPress: performLogout,
                     },
-                },
-            ]
-        );
+                ]
+            );
+        }
     };
 
     const handleDeleteAccount = () => {

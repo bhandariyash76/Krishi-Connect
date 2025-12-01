@@ -55,7 +55,8 @@ export default function ProductDetailsScreen() {
         try {
             const totalAmount = product.price * buyQuantity;
 
-            await api.post('/orders', {
+            // 1. Create Order
+            const orderResponse = await api.post('/orders', {
                 buyer: userId,
                 farmer: product.farmer._id,
                 items: [
@@ -68,12 +69,34 @@ export default function ProductDetailsScreen() {
                 totalAmount
             });
 
-            setBuyModalVisible(false);
-            Alert.alert('Success', 'Order placed successfully!', [
-                { text: 'OK', onPress: () => router.push('/home') }
-            ]);
+            const { order, razorpayOrder } = orderResponse.data;
+
+            // 2. Initiate Payment
+            const { initiateRazorpayPayment, verifyPayment } = require('@/services/payment');
+
+            initiateRazorpayPayment(
+                order,
+                razorpayOrder,
+                async (data: any) => {
+                    // Success Callback
+                    try {
+                        await verifyPayment(data);
+                        setBuyModalVisible(false);
+                        Alert.alert('Success', 'Payment successful! Order placed.', [
+                            { text: 'OK', onPress: () => router.push('/buyer-orders') }
+                        ]);
+                    } catch (verifyError) {
+                        Alert.alert('Error', 'Payment verification failed. Please contact support.');
+                    }
+                },
+                (error: any) => {
+                    // Failure Callback
+                    Alert.alert('Error', `Payment failed: ${error.description || error.message}`);
+                }
+            );
+
         } catch (error: any) {
-            Alert.alert('Error', error.response?.data?.message || 'Failed to place order');
+            Alert.alert('Error', error.response?.data?.message || 'Failed to initiate order');
         }
     };
 
@@ -191,7 +214,10 @@ export default function ProductDetailsScreen() {
                     />
                     <Button
                         title="Contact Farmer"
-                        onPress={() => Alert.alert('Info', 'Chat feature coming soon!')}
+                        onPress={() => router.push({
+                            pathname: '/chat/[id]',
+                            params: { id: product.farmer?._id, name: product.farmer?.name }
+                        })}
                         variant="outline"
                         size="large"
                         style={{ marginTop: 12 }}

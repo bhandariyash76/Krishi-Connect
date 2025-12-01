@@ -184,11 +184,7 @@ export default function BuyerMarketplace() {
                                     console.log('✅ Storage & Token Cleared');
 
                                     // Force reload
-                                    if (typeof window !== 'undefined') {
-                                        window.location.href = '/';
-                                    } else {
-                                        router.replace('/');
-                                    }
+                                    router.replace('/');
                                 } catch (error) {
                                     console.error('Logout error:', error);
                                 }

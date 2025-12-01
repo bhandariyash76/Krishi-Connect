@@ -1,9 +1,10 @@
 import express from "express";
-import { createOrder, getOrdersByFarmer, getOrdersByBuyer, updateOrderStatus } from "../controllers/orderController.js";
+import { createOrder, getOrdersByFarmer, getOrdersByBuyer, updateOrderStatus, verifyPayment } from "../controllers/orderController.js";
 
 const router = express.Router();
 
 router.post("/", createOrder);
+router.post("/verify", verifyPayment);
 router.get("/farmer/:farmerId", getOrdersByFarmer);
 router.get("/buyer/:buyerId", getOrdersByBuyer);
 router.patch("/:id/status", updateOrderStatus);

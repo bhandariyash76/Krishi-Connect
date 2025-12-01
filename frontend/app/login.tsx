@@ -31,7 +31,11 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!emailMobile || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      if (Platform.OS === 'web') {
+        window.alert('Please fill in all fields');
+      } else {
+        Alert.alert('Error', 'Please fill in all fields');
+      }
       return;
     }
 
@@ -62,7 +66,12 @@ export default function LoginScreen() {
         router.replace('/home');
       }
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.message || 'Login failed. Please try again.');
+      const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';
+      if (Platform.OS === 'web') {
+        window.alert(errorMessage);
+      } else {
+        Alert.alert('Error', errorMessage);
+      }
     } finally {
       setLoading(false);
     }

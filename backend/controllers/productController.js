@@ -10,13 +10,22 @@ export const getProducts = async (req, res) => {
 };
 
 export const createProduct = async (req, res) => {
-    const product = req.body;
-    const newProduct = new Product(product);
-
     try {
+        const productData = req.body;
+
+        // Handle Image Upload
+        if (req.files && req.files.length > 0) {
+            productData.images = req.files.map(file => `/uploads/${file.filename}`);
+        } else if (req.file) {
+            // Fallback for single file if needed, though route is array now
+            productData.images = [`/uploads/${req.file.filename}`];
+        }
+
+        const newProduct = new Product(productData);
         await newProduct.save();
         res.status(201).json(newProduct);
     } catch (error) {
+        console.error("Create Product Error:", error);
         res.status(409).json({ message: error.message });
     }
 };
@@ -56,6 +65,19 @@ export const updateProduct = async (req, res) => {
         if (!updatedProduct) return res.status(404).json({ message: "Product not found" });
 
         res.status(200).json(updatedProduct);
+    } catch (error) {
+        res.status(409).json({ message: error.message });
+    }
+};
+
+export const deleteProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deletedProduct = await Product.findByIdAndDelete(id);
+
+        if (!deletedProduct) return res.status(404).json({ message: "Product not found" });
+
+        res.status(200).json({ message: "Product deleted successfully" });
     } catch (error) {
         res.status(409).json({ message: error.message });
     }

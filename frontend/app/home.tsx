@@ -9,6 +9,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
+  Image,
+  Platform,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -166,7 +168,8 @@ export default function HomeScreen() {
     try {
       const totalAmount = selectedProduct.price * buyQuantity;
 
-      await api.post('/orders', {
+      // 1. Create Order
+      const orderResponse = await api.post('/orders', {
         buyer: userId,
         farmer: selectedProduct.farmer._id,
         items: [
@@ -179,90 +182,116 @@ export default function HomeScreen() {
         totalAmount
       });
 
-      setBuyModalVisible(false);
-      Alert.alert('Success', 'Order placed successfully!');
-      fetchMarketplaceProducts(); // Refresh to show updated stock
-      fetchBuyerOrders(); // Refresh orders list
+      const { order, razorpayOrder } = orderResponse.data;
+
+      // 2. Initiate Payment
+      const { initiateRazorpayPayment, verifyPayment } = require('@/services/payment');
+
+      initiateRazorpayPayment(
+        order,
+        razorpayOrder,
+        async (data: any) => {
+          // Success Callback
+          try {
+            await verifyPayment(data);
+            setBuyModalVisible(false);
+            Alert.alert('Success', 'Payment successful! Order placed.');
+            fetchMarketplaceProducts(); // Refresh to show updated stock
+            fetchBuyerOrders(); // Refresh orders list
+          } catch (verifyError) {
+            console.log('Verification Error', verifyError);
+            Alert.alert('Error', 'Payment verification failed. Please contact support.');
+          }
+        },
+        (error: any) => {
+          // Failure Callback
+          console.log('Payment Failed', error);
+          Alert.alert('Error', `Payment failed: ${error.description || error.message}`);
+        }
+      );
+
     } catch (error: any) {
       console.log('Error placing order', error);
       Alert.alert('Error', error.response?.data?.message || 'Failed to place order');
     }
   };
 
+  const performLogout = async () => {
+    // Show loading indicator if possible, or just proceed
+    try {
+      console.log('🔴 === LOGOUT STARTED (HOME.TSX) ===');
+
+      // Call backend logout API with short timeout
+      try {
+        const logoutPromise = api.post('/auth/logout');
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Logout timeout')), 2000)
+        );
+        await Promise.race([logoutPromise, timeoutPromise]);
+        console.log('✓ Backend logout successful');
+      } catch (apiError) {
+        console.log('⚠ Backend logout error/timeout (continuing):', apiError);
+      }
+
+      // Reset local state
+      setRole(null);
+      setUserName('');
+      setUserId('');
+      setProducts([]);
+      setOrders([]);
+      setAdminStats(null);
+      setAdminUsers([]);
+      setAdminOrders([]);
+      console.log('✓ Local state cleared');
+
+      // Clear auth token from API
+      setAuthToken('');
+      console.log('✓ Auth token cleared');
+
+      // Clear all storage - NUCLEAR OPTION
+      try {
+        await storage.clearAll();
+        console.log('✓ Storage.clearAll() done');
+
+        // Double clear with AsyncStorage directly
+        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+        await AsyncStorage.clear();
+        console.log('✓ AsyncStorage.clear() done');
+      } catch (storageError) {
+        console.error('❌ Storage error:', storageError);
+      }
+
+      // Force reload the entire app by going to index which checks auth
+      console.log('🔄 Reloading app via index...');
+      router.replace('/');
+
+      console.log('🔴 === LOGOUT COMPLETE ===');
+    } catch (error) {
+      console.error('❌ LOGOUT ERROR:', error);
+      // Fallback navigation even on error
+      router.replace('/');
+    }
+  };
+
   const handleLogout = async () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              console.log('🔴 === LOGOUT STARTED (HOME.TSX) ===');
-
-              // Call backend logout API
-              try {
-                await api.post('/auth/logout');
-                console.log('✓ Backend logout successful');
-              } catch (apiError) {
-                console.log('⚠ Backend logout error (continuing):', apiError);
-              }
-
-              // Reset local state
-              setRole(null);
-              setUserName('');
-              setUserId('');
-              setProducts([]);
-              setOrders([]);
-              setAdminStats(null);
-              setAdminUsers([]);
-              setAdminOrders([]);
-              console.log('✓ Local state cleared');
-
-              // Clear auth token from API
-              setAuthToken('');
-              console.log('✓ Auth token cleared');
-
-              // Clear all storage - NUCLEAR OPTION
-              try {
-                await storage.clearAll();
-                console.log('✓ Storage.clearAll() done');
-
-                // Double clear with AsyncStorage directly
-                const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-                await AsyncStorage.clear();
-                console.log('✓ AsyncStorage.clear() done');
-
-                // Verify
-                const allKeys = await AsyncStorage.getAllKeys();
-                console.log('📋 Remaining keys:', allKeys.length);
-              } catch (storageError) {
-                console.error('❌ Storage error:', storageError);
-              }
-
-              // Wait for async operations
-              await new Promise(resolve => setTimeout(resolve, 500));
-              console.log('✓ Wait complete');
-
-              // Force reload the entire app
-              console.log('🔄 Reloading app...');
-              if (typeof window !== 'undefined') {
-                window.location.href = '/';
-              } else {
-                router.replace('/welcome');
-              }
-
-              console.log('🔴 === LOGOUT COMPLETE ===');
-            } catch (error) {
-              console.error('❌ LOGOUT ERROR:', error);
-              Alert.alert('Error', 'Failed to logout. Please try again.');
-            }
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to logout?')) {
+        await performLogout();
+      }
+    } else {
+      Alert.alert(
+        'Logout',
+        'Are you sure you want to logout?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Logout',
+            style: 'destructive',
+            onPress: performLogout,
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   const getRoleEmoji = () => {
@@ -275,8 +304,54 @@ export default function HomeScreen() {
     return role === 'farmer' ? i18n.t('home.farmer') : i18n.t('home.buyer');
   };
 
+  const performDelete = async (productId: string) => {
+    try {
+      await api.delete(`/products/${productId}`);
+      fetchFarmerProducts(); // Refresh list
+      if (Platform.OS === 'web') {
+        window.alert("Product deleted successfully");
+      } else {
+        Alert.alert("Success", "Product deleted successfully");
+      }
+    } catch (error) {
+      console.log("Error deleting product", error);
+      if (Platform.OS === 'web') {
+        window.alert("Failed to delete product");
+      } else {
+        Alert.alert("Error", "Failed to delete product");
+      }
+    }
+  };
+
+  const handleDeleteProduct = async (productId: string) => {
+    if (Platform.OS === 'web') {
+      if (window.confirm("Are you sure you want to delete this product?")) {
+        await performDelete(productId);
+      }
+    } else {
+      Alert.alert(
+        "Delete Product",
+        "Are you sure you want to delete this product?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: () => performDelete(productId),
+          },
+        ]
+      );
+    }
+  };
+
   const renderProductCard = (product: any, isBuyer: boolean) => (
     <Card key={product._id} style={styles.productCard}>
+      {product.images && product.images.length > 0 && (
+        <Image
+          source={{ uri: `${api.defaults.baseURL?.replace('/api', '')}${product.images[0]}` }}
+          style={styles.productImage}
+        />
+      )}
       <View style={styles.productHeader}>
         <Text style={styles.productName}>{product.name}</Text>
         <Text style={styles.productPrice}>₹{product.price} / {product.unit}</Text>
@@ -294,13 +369,23 @@ export default function HomeScreen() {
           disabled={product.quantity <= 0}
         />
       ) : (
-        <Button
-          title="Edit"
-          onPress={() => router.push({ pathname: '/edit-product', params: { id: product._id } })}
-          variant="outline"
-          size="small"
-          style={styles.actionButton}
-        />
+        <View style={styles.actionButtonsContainer}>
+          <Button
+            title="Edit"
+            onPress={() => router.push({ pathname: '/edit-product', params: { id: product._id } })}
+            variant="outline"
+            size="small"
+            style={{ flex: 1, marginRight: 4 }}
+          />
+          <Button
+            title="Delete"
+            onPress={() => handleDeleteProduct(product._id)}
+            variant="outline"
+            size="small"
+            style={{ flex: 1, marginLeft: 4, borderColor: '#FF6B6B' }}
+            textStyle={{ color: '#FF6B6B' }}
+          />
+        </View>
       )}
     </Card>
   );
@@ -420,6 +505,9 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <LanguageToggle />
+            <TouchableOpacity onPress={() => router.push('/chat')}>
+              <Ionicons name="chatbubble-ellipses-outline" size={28} color={AppColors.primary} />
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => router.push('/profile')}>
               <Ionicons name="person-circle-outline" size={32} color={AppColors.primary} />
             </TouchableOpacity>
@@ -695,6 +783,13 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
   },
+  productImage: {
+    width: '100%',
+    height: 150,
+    borderRadius: 8,
+    marginBottom: 12,
+    resizeMode: 'cover',
+  },
   productHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -722,6 +817,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   actionButton: {
+    marginTop: 12,
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
     marginTop: 12,
   },
   orderCard: {

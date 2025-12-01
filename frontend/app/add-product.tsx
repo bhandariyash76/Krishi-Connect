@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
     View,
@@ -9,6 +10,8 @@ import {
     Alert,
     KeyboardAvoidingView,
     Platform,
+    TouchableOpacity,
+    Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components/ui/Button';
@@ -17,6 +20,9 @@ import { BackButton } from '@/components/ui/BackButton';
 import { AppColors } from '@/constants/colors';
 import api from '@/services/api';
 import { storage } from '@/utils/storage';
+
+import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function AddProductScreen() {
     const router = useRouter();
@@ -29,11 +35,45 @@ export default function AddProductScreen() {
     const [minOrderQuantity, setMinOrderQuantity] = useState('1');
     const [origin, setOrigin] = useState('');
     const [freshness, setFreshness] = useState('Fresh');
+    const [images, setImages] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
+
+    const pickImage = async () => {
+        if (images.length >= 5) {
+            if (Platform.OS === 'web') {
+                window.alert('You can upload a maximum of 5 images.');
+            } else {
+                Alert.alert('Limit Reached', 'You can upload a maximum of 5 images.');
+            }
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaType.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.5,
+            selectionLimit: 5 - images.length, // Only works on some platforms, manual check needed
+            allowsMultipleSelection: true, // Enable multiple selection
+        });
+
+        if (!result.canceled) {
+            const newImages = result.assets.map(asset => asset.uri);
+            setImages(prev => [...prev, ...newImages].slice(0, 5));
+        }
+    };
+
+    const removeImage = (index: number) => {
+        setImages(prev => prev.filter((_, i) => i !== index));
+    };
 
     const handleAddProduct = async () => {
         if (!name || !price || !quantity || !unit) {
-            Alert.alert('Error', 'Please fill in all required fields');
+            if (Platform.OS === 'web') {
+                window.alert('Please fill in all required fields');
+            } else {
+                Alert.alert('Error', 'Please fill in all required fields');
+            }
             return;
         }
 
@@ -41,28 +81,50 @@ export default function AddProductScreen() {
         try {
             const userData = await storage.getUserData();
             if (!userData || !(userData as any)._id) {
-                Alert.alert('Error', 'User not found');
+                if (Platform.OS === 'web') {
+                    window.alert('User not found');
+                } else {
+                    Alert.alert('Error', 'User not found');
+                }
                 return;
             }
 
-            await api.post('/products', {
-                farmer: (userData as any)._id,
-                name,
-                price: Number(price),
-                quantity: Number(quantity),
-                unit,
-                description,
-                harvestDate: harvestDate ? new Date(harvestDate) : undefined,
-                minOrderQuantity: Number(minOrderQuantity),
-                origin,
-                freshness
+            const formData = new FormData();
+            formData.append('farmer', (userData as any)._id);
+            formData.append('name', name);
+            formData.append('price', price);
+            formData.append('quantity', quantity);
+            formData.append('unit', unit);
+            formData.append('description', description);
+            if (harvestDate) formData.append('harvestDate', harvestDate);
+            formData.append('minOrderQuantity', minOrderQuantity);
+            formData.append('origin', origin);
+            formData.append('freshness', freshness);
+
+            images.forEach((imageUri) => {
+                const filename = imageUri.split('/').pop();
+                const match = /\.(\w+)$/.exec(filename || '');
+                const type = match ? `image/${match[1]}` : `image`;
+
+                // @ts-ignore
+                formData.append('images', { uri: imageUri, name: filename, type });
             });
 
-            Alert.alert('Success', 'Product added successfully', [
-                { text: 'OK', onPress: () => router.back() },
-            ]);
+            await api.post('/products', formData, {
+                headers: {
+                    'Accept': 'application/json',
+                }
+            });
+
+            router.back();
         } catch (error: any) {
-            Alert.alert('Error', error.response?.data?.message || 'Failed to add product');
+            console.error(error);
+            const errorMessage = error.response?.data?.message || 'Failed to add product';
+            if (Platform.OS === 'web') {
+                window.alert(errorMessage);
+            } else {
+                Alert.alert('Error', errorMessage);
+            }
         } finally {
             setLoading(false);
         }
@@ -79,6 +141,29 @@ export default function AddProductScreen() {
                     <Text style={styles.title}>Add New Product</Text>
 
                     <View style={styles.form}>
+                        <View style={styles.imageSection}>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageList}>
+                                {images.map((img, index) => (
+                                    <View key={index} style={styles.imageContainer}>
+                                        <Image source={{ uri: img }} style={styles.imagePreview} />
+                                        <TouchableOpacity
+                                            style={styles.removeButton}
+                                            onPress={() => removeImage(index)}
+                                        >
+                                            <Ionicons name="close-circle" size={24} color="red" />
+                                        </TouchableOpacity>
+                                    </View>
+                                ))}
+                                {images.length < 5 && (
+                                    <TouchableOpacity onPress={pickImage} style={styles.addImageButton}>
+                                        <Ionicons name="camera-outline" size={32} color={AppColors.textSecondary} />
+                                        <Text style={styles.addImageText}>Add</Text>
+                                    </TouchableOpacity>
+                                )}
+                            </ScrollView>
+                            <Text style={styles.imageCountText}>{images.length}/5 Images</Text>
+                        </View>
+
                         <Input
                             label="Product Name *"
                             placeholder="e.g. Tomato"
@@ -190,5 +275,53 @@ const styles = StyleSheet.create({
     },
     submitButton: {
         marginTop: 24,
+    },
+    imageSection: {
+        marginBottom: 16,
+    },
+    imageList: {
+        flexDirection: 'row',
+        marginBottom: 8,
+    },
+    imageContainer: {
+        width: 100,
+        height: 100,
+        marginRight: 12,
+        borderRadius: 8,
+        overflow: 'hidden',
+        position: 'relative',
+    },
+    imagePreview: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+    removeButton: {
+        position: 'absolute',
+        top: 4,
+        right: 4,
+        backgroundColor: 'white',
+        borderRadius: 12,
+    },
+    addImageButton: {
+        width: 100,
+        height: 100,
+        backgroundColor: AppColors.backgroundLight,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: AppColors.border,
+        borderStyle: 'dashed',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    addImageText: {
+        color: AppColors.textSecondary,
+        fontSize: 12,
+        marginTop: 4,
+    },
+    imageCountText: {
+        color: AppColors.textSecondary,
+        fontSize: 12,
+        textAlign: 'right',
     },
 });
