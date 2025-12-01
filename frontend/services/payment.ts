@@ -73,7 +73,56 @@ export const initiateRazorpayPayment = async (
 
     // Native Implementation
     try {
-        const RazorpayCheckout = require('react-native-razorpay').default;
+        let RazorpayCheckout = null;
+        let isNativeAvailable = false;
+
+        try {
+            // 1. Check if NativeModules.RNRazorpay exists (Crucial for Expo Go)
+            const { NativeModules } = require('react-native');
+            if (!NativeModules || !NativeModules.RNRazorpay) {
+                console.log("NativeModules.RNRazorpay is missing (Expo Go detected)");
+                isNativeAvailable = false;
+            } else {
+                // 2. Try to require the JS module
+                const module = require('react-native-razorpay');
+                RazorpayCheckout = module.default || module;
+
+                // 3. Check if it has the open method
+                if (RazorpayCheckout && typeof RazorpayCheckout.open === 'function') {
+                    isNativeAvailable = true;
+                }
+            }
+        } catch (e) {
+            console.log("Failed to load react-native-razorpay or NativeModules:", e);
+            isNativeAvailable = false;
+        }
+
+        // Force simulation if native module is missing or invalid (Expo Go)
+        if (!isNativeAvailable) {
+            console.log("Razorpay native module not available. Using simulation.");
+            Alert.alert(
+                "Payment Simulation",
+                "Razorpay Native SDK is not supported in Expo Go. Do you want to simulate a successful payment?",
+                [
+                    {
+                        text: "Cancel",
+                        onPress: () => onFailure({ description: "Payment cancelled by user" }),
+                        style: "cancel"
+                    },
+                    {
+                        text: "Simulate Success",
+                        onPress: () => {
+                            onSuccess({
+                                razorpay_payment_id: "pay_simulated_" + Date.now(),
+                                razorpay_order_id: razorpayOrder.id,
+                                razorpay_signature: "simulated_signature"
+                            });
+                        }
+                    }
+                ]
+            );
+            return;
+        }
 
         const options = {
             description: `Order #${order._id}`,

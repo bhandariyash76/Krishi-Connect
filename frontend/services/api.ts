@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 
 // Replace with your machine's IP address if testing on a physical device
 // Example: '192.168.1.5'
-const LAN_IP = '192.168.1.5'; // <--- CHANGE THIS TO YOUR COMPUTER'S IP
+const LAN_IP = '192.168.29.236'; // <--- CHANGE THIS TO YOUR COMPUTER'S IP
 
 const API_URL = Platform.OS === 'android'
     ? `http://${LAN_IP}:5000/api` // Use LAN IP for physical device/emulator

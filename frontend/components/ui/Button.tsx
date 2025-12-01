@@ -65,15 +65,16 @@ const styles = StyleSheet.create({
     borderRadius: AppStyles.borderRadius.medium,
     alignItems: 'center',
     justifyContent: 'center',
-    ...AppStyles.shadow,
   },
   button_primary: {
     backgroundColor: AppColors.background,
     borderWidth: 1,
     borderColor: AppColors.border,
+    ...AppStyles.shadow,
   },
   button_secondary: {
     backgroundColor: AppColors.secondary,
+    ...AppStyles.shadow,
   },
   button_outline: {
     backgroundColor: 'transparent',
